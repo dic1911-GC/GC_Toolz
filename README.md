@@ -10,6 +10,8 @@ grab.js
 -------------
 A simple nodejs script to grab your own score, rank, etc... with the SESSION ID(stores as cookie in your browser)
 
+*Dependency: nodejs(+module: shelljs), curl*
+
 > **Note:**
 
 > - `debug` flag must be used one time before `local` flag is used (since temp files will be removed without `debug` flag.
