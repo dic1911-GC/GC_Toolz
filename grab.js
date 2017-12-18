@@ -210,15 +210,15 @@ for(i=0; i < size; i++){
 		current += ",,,,,,";
 	}else{
 		stat = true;
-		if(sc.hard_result_data.perfect == 1){
+		if(sc.hard_result_data.perfect != 0){
 			current += "PERFECT,";
-		}else if(sc.hard_result_data.full_chain == 1){
+		}else if(sc.hard_result_data.full_chain != 0){
 			current += "FULLCHAIN,";
-		}else if(sc.hard_result_data.no_miss == 1){
+		}else if(sc.hard_result_data.no_miss != 0){
 			current += "NO MISS,";
-		}else if(sc.hard_result_data.is_clear_mark == 1){
+		}else if(sc.hard_result_data.is_clear_mark == true){
 			current += "CLEAR,";
-		}else if(sc.hard_result_data.is_failed_mark == 1){
+		}else if(sc.hard_result_data.is_failed_mark == true){
 			current += "FAILED,";
 		}else{
 			current += ",";
