@@ -2,23 +2,26 @@ var fs = require('fs');
 var shell = require('shelljs');
 //var shellescape = require('shell-escape');
 
-var debug = true;
+var debug = false;
 var local = false;
 var sessionID = [""]; //set your cookie here, F12, network tab is your friend ;)
-var output = "full.csv" //set output filename here;
+var output = "full" //set output filename here, ex. full => full-[date].csv;
 
 var url = ["http://mypage.groovecoaster.jp/sp/json/music_list.php",
 	"http://mypage.groovecoaster.jp/sp/json/music_detail.php?music_id="];
-var cmd = ['curl -o ', ' -H \'DNT: 1\' -H \'Accept-Encoding: gzip, deflate, sdch, br\' -H \'Accept-Language: en-US,en;q=0.8\' -H \'Upgrade-Insecure-Requests: 1\' -H \'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36\' -H \'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\' -H \'Cache-Control: max-age=0\' -H \'Cookie: PHPSESSID=', '\' -H \'Connection: keep-alive\' --compressed'];
+var cmd = ['curl -o ', ' -H \'DNT: 1\' -H \'Accept-Encoding: gzip, deflate, sdch, br\' -H \'Accept-Language: en-US,en;q=0.8\' -H \'Upgrade-Insecure-Requests: 1\' -H \'User-Agent: Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36\' -H \'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8\' -H \'Cache-Control: max-age=0\' -H \'Cookie: PHPSESSID=', '\' -H \'Connection: keep-alive\' --compressed', ' --silent'];
+if(!debug){
+	cmd[3] = '';
+}
 
 console.log("Grabbing teh list...");
 //shellescape(sessionID);
 
 if(debug){
-	console.log(cmd[0] + "music_list " + url[0] + cmd[1] + sessionID + cmd[2]);
+	console.log(cmd[0] + "music_list " + url[0] + cmd[1] + sessionID + cmd[2] + cmd[3]);
 }
 if(!local){
-	shell.exec(cmd[0] + "music_list " + url[0] + cmd[1] + sessionID + cmd[2]);
+	shell.exec(cmd[0] + "music_list " + url[0] + cmd[1] + sessionID + cmd[2] + cmd[3]);
 }
 console.log("Parsing teh list...");
 var list = JSON.parse(fs.readFileSync('music_list', 'utf8'));
@@ -27,17 +30,19 @@ console.log();
 
 console.log("Downloading all teh score...");
 var id_list = [];
+var cur;
 music_list = list.music_list;
 var size = music_list.length;
 console.log("You have played " + size + " Songs on Groove Coaster...");
 shell.exec("mkdir tmp");
 for(i = 0; i < size; i++){
-	console.log(i+1 + "/" + size + " " + music_list[i].music_title);
+	cur = i+1;
+	console.log("[Downloading " + cur + "/" + size + "] " + music_list[i].music_title);
 	if(!local){
 		if(debug){
-			console.log(cmd[0] + "tmp/" + music_list[i].music_id + " " + url[1] + music_list[i].music_id + cmd[1] + sessionID + cmd[2]);
+			console.log(cmd[0] + "tmp/" + music_list[i].music_id + " " + url[1] + music_list[i].music_id + cmd[1] + sessionID + cmd[2] + cmd[3]);
 		}
-		shell.exec(cmd[0] + "tmp/" + music_list[i].music_id + " " + url[1] + music_list[i].music_id + cmd[1] + sessionID + cmd[2]);
+		shell.exec(cmd[0] + "tmp/" + music_list[i].music_id + " " + url[1] + music_list[i].music_id + cmd[1] + sessionID + cmd[2] + cmd[3]);
 	}
 	id_list.push(music_list[i].music_id);
 }
@@ -59,8 +64,8 @@ for(i=0; i < size; i++){
 		console.log("Error while parsing song_id=" + id + ", ignoring...");
 		continue;
 	}
-	var cur = i+1;
-	console.log("[" + cur + "/" + size + "]" + id + ". " + sc.music_title);
+	cur = i+1;
+	console.log("[Parsing " + cur + "/" + size + "]" + id + ". " + sc.music_title);
 	
 	//fix "quote" in names
 	var title = '"';
@@ -84,14 +89,20 @@ for(i=0; i < size; i++){
 		}
 	}
 	artist += '"';
-	if(quote[0] && quote[1]){ //iNFO
+	
+	if(sc.music_id == 321){
+		console.log("using workaround for 2112410403927243233368")
+		title = title + " "; 
+		sc.artist += " ";
+		current = '321, "2112410403927243233368 ", "253215 ",';
+	}else if(quote[0] && quote[1]){ //iNFO
 		current = sc.music_id + ',' + title + ',' + artist + ',';
 	}else if(quote[0] && !quote[1]){
-		current = sc.music_id + ',' + title + '","' + sc.artist + '",';
+		current = sc.music_id + ',' + title + ',"' + sc.artist + '",';
 	}else if(!quote[0] && quote[1]){
-		current = sc.music_id + ',' + sc.music_title + '","' + artist + '",';
+		current = sc.music_id + ',' + title + '","' + artist + '",';
 	}else{
-		current = sc.music_id + ',"' + sc.music_title + '","' + sc.artist + '",';
+		current = sc.music_id + ',' + title + ',"' + sc.artist + '",';
 	}
 	//simple
 	if(sc.simple_result_data == null){
@@ -331,6 +342,8 @@ for(i=0; i < size; i++){
 	}
 }
 
+shell.exec("mv " + output + " " + output + "-$(date --rfc-3339=date).csv");
+
 if(!debug){
-	shell.exec("rm -rf tmp");
+	shell.exec("rm -rf tmp & rm music_list");
 }
