@@ -4,7 +4,7 @@ var shell = require('shelljs');
 
 var debug = false;
 var local = false;
-var sessionID = [""]; //set your cookie here, F12, network tab is your friend ;)
+var sessionID = ["COOKIE HERE"]; //set your cookie here, F12, network tab is your friend ;)
 var output = "full" //set output filename here, ex. full => full-[date].csv;
 
 var url = ["http://mypage.groovecoaster.jp/sp/json/music_list.php",
@@ -156,7 +156,9 @@ for(i=0; i < size; i++){
 			current += ",";
 			current += sc.simple_result_data.play_count;
 			current += ",";
-			current += sc.user_rank[0].rank;
+			if(sc.user_rank != null){
+				current += sc.user_rank[0].rank;
+			}
 			current += ",";
 		}
 	}
@@ -212,12 +214,14 @@ for(i=0; i < size; i++){
 			current += ",";
 			current += sc.normal_result_data.play_count;
 			current += ",";
-			current += sc.user_rank[1].rank;
+			if(sc.user_rank != null){
+				current += sc.user_rank[1].rank;
+			}
 			current += ",";
 		}
 	}
 	//hard
-	if(sc.normal_result_data == null){
+	if(sc.hard_result_data == null){
 		current += ",,,,,,";
 	}else{
 		stat = true;
@@ -268,7 +272,9 @@ for(i=0; i < size; i++){
 			current += ",";
 			current += sc.hard_result_data.play_count;
 			current += ",";
-			current += sc.user_rank[2].rank;
+			if(sc.user_rank != null){
+				current += sc.user_rank[2].rank;
+			}
 			current += ",";
 		}
 	}
@@ -322,7 +328,9 @@ for(i=0; i < size; i++){
 			current += ",";
 			current += sc.extra_result_data.play_count;
 			current += ",";
-			current += sc.user_rank[3].rank;
+			if(sc.user_rank != null){
+				current += sc.user_rank[3].rank;
+			}
 			current += "\n";
 		}
 	}else{
